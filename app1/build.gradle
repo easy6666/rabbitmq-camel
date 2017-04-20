@@ -1,0 +1,61 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.5
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+
+    compile("org.apache.camel:camel-core:2.14.0")
+    compile("org.apache.camel:camel-http:2.14.0")
+    compile("org.apache.camel:camel-jetty:2.14.0")
+    compile group: 'org.apache.camel', name: 'camel-netty4-http', version: '2.14.0'
+    compile group: 'io.netty', name: 'netty-all', version: '4.1.9.Final'
+    compile 'org.springframework.amqp:spring-amqp:1.2.2.RELEASE'
+    compile 'com.bluelock:camel-spring-amqp:1.6.3'
+
+    compile 'ch.qos.logback:logback-classic:1.1.2'
+    compile 'org.slf4j:log4j-over-slf4j:1.7.7'
+    compile 'org.slf4j:jcl-over-slf4j:1.7.7'
+
+//    compile 'org.springframework:spring-context:[4+]'
+//    compile("org.apache.camel:camel-servlet:2.14.0")
+//    compile 'org.apache.camel:camel-rabbitmq:2.14.0'
+//    compile('com.bluelock:camel-spring-amqp:1.6.3') {
+//        exclude module: "xstream"
+//        exclude module: "jettison"
+//        exclude module: "jackson-mapper-asl"
+//    }
+//    compile 'com.rabbitmq:amqp-client:3.3.5'
+//    compile("org.apache.camel:camel-metrics:2.14.0")
+//    compile 'com.codahale.metrics:metrics-core:3.0.2'
+//    compile 'com.codahale.metrics:metrics-healthchecks:3.0.2'
+//    compile 'org.hibernate:hibernate-validator:5.1.2.Final'
+//    compile 'com.thoughtworks.paranamer:paranamer:2.7'
+//    compile 'org.glassfish.web:el-impl:2.2'
+//    compile 'commons-codec:commons-codec:1.9'
+//    compile 'com.fasterxml.jackson.core:jackson-databind:2.4.2'
+//    compile 'org.nutz:nutz:1.b.51'
+//    compile 'joda-time:joda-time:2.4'
+//    compile 'args4j:args4j:2.0.16'
+//    compile 'com.codahale.metrics:metrics-servlets:3.0.2'
+//    compile("org.jolokia:jolokia-core:1.2.2")
+
+
+}
+
+configurations {
+    compile.exclude module: 'jaxb-api'
+    compile.exclude module: 'jaxb-core'
+    compile.exclude module: 'jaxb-impl'
+    compile.exclude module: 'geronimo-servlet_3.0_spec'
+}
+
+task copyJars(type: Copy) {
+    from configurations.runtime
+    into 'libs' // 目标位置
+}

@@ -1,0 +1,3 @@
+rootProject.name = 'rabbitmq-camel'
+
+include 'app1'
