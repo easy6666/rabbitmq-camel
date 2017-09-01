@@ -1,3 +1,5 @@
 .DS_Store
 app1/libs
 app1/build
+.idea
+*.xml
