@@ -1,89 +1,67 @@
 import amqp.spring.camel.component.SpringAMQPComponent;
 import org.apache.camel.CamelContext;
+import org.apache.camel.Component;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.netty4.NettyServerBootstrapConfiguration;
 import org.apache.camel.impl.DefaultCamelContext;
+import org.apache.camel.impl.JndiRegistry;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import support.camel.NettyRegistry;
+import support.camel.rabbitmq.SpringAMQP;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
+import java.util.Properties;
+
+import static sun.jvm.hotspot.runtime.PerfMemory.end;
 
 /**
  * Created by kaiseryi on 2014/12/10.
  */
 public class CamelSend {
+
+
+
     public static void main(String args[]) throws Exception {
+        
 
-        /*
-
-        CamelContext context = new DefaultCamelContext();
-        Component comp = new SpringAMQPComponent();
-        context.addComponent("spring-amqp", comp);
-        context.addRoutes(new RouteBuilder() {
-
-            public void configure() {
-                from("jetty://http://127.0.0.1:8888/myservice")
-                        .process(new Processor() {
-                            public void process(Exchange exchange) throws Exception {
-                                exchange.getOut().setBody("Page not found");
-                                exchange.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
-                            }
-                        }).to("rabbitmq://localhost/myExchange");
-            }
-        });
-        //amqp:myQueue:topic:foo.bar
-        context.start();
-
-        */
+        SpringAMQPComponent spring_amqp = new SpringAMQP(
+                "localhost",
+                5672,
+                "guest",
+                "guest",
+                "binding_key",
+                "myQueue",
+                "myExchange",
+                "/"
+        ).initCompoment();
 
 
-        CachingConnectionFactory cf = new CachingConnectionFactory();
-        cf.setHost("localhost");
-        cf.setPort(5672);
-        cf.setUsername("guest");
-        cf.setPassword("guest");
-        //cf.setVirtualHost("/");
-        RabbitAdmin admin = new RabbitAdmin(cf);
-        RabbitTemplate template = new RabbitTemplate(cf);
-        //template.convertAndSend("myExchange", "binding_key", "Hello, world!");
-        //Thread.sleep(1000);
-
-        SpringAMQPComponent spring_amqp = new SpringAMQPComponent();
-
-        Map<String, ConnectionFactory> connectionFactory = new HashMap<String, ConnectionFactory>();
-        connectionFactory.put("DefaultConnection", cf);
-        spring_amqp.setConnectionFactory(connectionFactory);
-
-        Map<String, AmqpAdmin> amqpAdministration = new HashMap<String, AmqpAdmin>();
-        amqpAdministration.put("DefaultConnection", admin);
-        spring_amqp.setAmqpAdministration(amqpAdministration);
-
-        Map<String, AmqpTemplate> amqpTemplate = new HashMap<String, AmqpTemplate>();
-        amqpTemplate.put("DefaultConnection", template);
-        spring_amqp.setAmqpTemplate(amqpTemplate);
-
-
-/**
- *
- * 采用camel方式发送给rabbitmq jetty的消息
- *
- */
-        CamelContext context = new DefaultCamelContext();
+        CamelContext context = new DefaultCamelContext(new NettyRegistry().createRegistry());
         context.addComponent("spring-amqp", spring_amqp);
+
+
         context.addRoutes(new RouteBuilder() {
 
             public void configure() {
-                from("netty4-http:http://127.0.0.1:8888/myservice")
+
+                from("netty4-http:http://127.0.0.1:8888/myservice?bootstrapConfiguration=#nettyHttpBootstrapOptions")
                         .process(new Processor() {
                             public void process(Exchange exchange) throws Exception {
-                                exchange.getOut().setBody("Page not found");
-                                exchange.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+                                exchange.getOut().setBody(exchange.getOut().getBody()+"send request");
+                                exchange.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+                                System.err.println(exchange.getOut());
                             }
                         })
                         //.setHeader("ROUTING_KEY", simple("binding_key"))
@@ -102,14 +80,43 @@ public class CamelSend {
  */
 
 /**
+ *      CachingConnectionFactory cf = new CachingConnectionFactory();
+        cf.setHost("localhost");
+        cf.setPort(5672);
+        cf.setUsername("guest");
+        cf.setPassword("guest");
+        cf.setVirtualHost("/");
+
         SimpleMessageListenerContainer container =
                 new SimpleMessageListenerContainer(cf);
-
         //RabbitTemplate template = new RabbitTemplate(cf);
         template.convertAndSend("myExchange", "binding_key", "Hello, world!");
         Thread.sleep(1000);
         container.stop();
  **/
+
+
+/**
+ *
+ * 采用SpringAMQP组件的接口方式接受rabbitmq的消息
+ *
+ */
+
+/**
+     // set up the listener and container
+     SimpleMessageListenerContainer container =
+     new SimpleMessageListenerContainer(cf);
+     Object listener = new Object() {
+         public void handleMessage(String foo) {
+            System.err.println(foo);
+         }
+     };
+     MessageListenerAdapter adapter = new MessageListenerAdapter(listener);
+     container.setMessageListener(adapter);
+     container.setQueueNames("myQueue");
+     container.start();
+ */
+
 
     }
 }

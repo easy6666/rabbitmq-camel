@@ -8,7 +8,7 @@ import com.rabbitmq.client.QueueingConsumer;
 
 public class Recv {
 
-    private static final String EXCHANGE_NAME = "myExchange";
+    private static final String EXCHANGE_NAME = "myExchange1";
 
     public static void main(String[] argv)
             throws Exception {
@@ -19,7 +19,7 @@ public class Recv {
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
-        channel.queueDeclare("myQueue",false,false,false,null);
+        channel.queueDeclare("myQueue",true,false,false,null);
         String queueName = channel.queueDeclare().getQueue();
         channel.exchangeDeclare(EXCHANGE_NAME, "topic");
         channel.queueBind(queueName, EXCHANGE_NAME, "binding_key");

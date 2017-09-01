@@ -5,7 +5,7 @@ import com.rabbitmq.client.Channel;
  * Created by kaiseryi on 2014/12/9.
  */
 public class Send {
-    private static final String EXCHANGE_NAME = "myExchange";
+    private static final String EXCHANGE_NAME = "myExchange1";
 
     public static void main(String[] argv)
             throws Exception {
